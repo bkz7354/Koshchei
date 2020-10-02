@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import pygame 
 from pygame.draw import *
 import numpy as np
@@ -6,11 +7,13 @@ import numpy as np
 pygame.init()  
 FPS = 30
 screen = pygame.display.set_mode((1500, 800))
-screen.fill([135, 206, 250])
-rect(screen, (66, 189, 84), (0, 400, 1500, 400))
 
 
 #house
+
+def draw_background():
+    screen.fill([135, 206, 250])
+    rect(screen, (66, 189, 84), (0, 400, 1500, 400))
 
 def house(x, y, k):
     """
@@ -96,23 +99,50 @@ def sun(x, y, k):
         y3 = y + 60*k*np.sin((i+0.3)*alpha)
         polygon(screen, (255, 255, 0), ((x1,y1), (x2, y2), (x3, y3)))
         
-    
+def draw_static():
+    house(900, 430, 0.5)
+    house(200, 450, 0.8)
+    tree(650, 450, 0.7)
+    tree(1200, 430, 0.5) 
 
-house(200, 450, 0.8)
-tree(650, 450, 0.7)
-house(900, 430, 0.5)
-tree(1200, 430, 0.5)
-cloud(350, 150, 0.6)
-cloud(800, 250, 0.4)
-cloud(1200, 150, 0.5) 
-sun(100, 100, 1)
+CLOUDS = [
+    (800, 250, 0.4),
+    (1200, 150, 0.5),
+    (350, 150, 0.6)
+]
 
-pygame.display.update()
+def draw_clouds():
+    for x, y, k in CLOUDS:
+        cloud(x, y, k)
+
+cloud_speed = 0.6
+def update_clouds(dt):
+    for i, t in enumerate(CLOUDS):
+        x, y, k = t
+        spd = cloud_speed*k
+        x = int(x - spd*dt)
+        if x < -400*k:
+            x = screen.get_width()
+
+        CLOUDS[i] = x, y, k
+        
 clock = pygame.time.Clock()
 finished = False
 
+
+time = pygame.time.get_ticks()
 while not finished:
     clock.tick(FPS)
+    update_clouds(pygame.time.get_ticks() - time)
+    time = pygame.time.get_ticks()
+
+    draw_background()
+    sun(100, 100, 1)
+    draw_clouds()
+    draw_static()
+    pygame.display.update()
+    
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
